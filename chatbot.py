@@ -1,38 +1,23 @@
-from langchain_huggingface import ChatHuggingFace, HuggingFacePipeline
-from dotenv import load_dotenv
+from model import model
+from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 
-import warnings
-warnings.filterwarnings("ignore")
+messages = []
 
-from transformers import logging
-logging.set_verbosity_error()
+system_message = input("Give a system message : ")
+messages.append(SystemMessage(content=system_message))
 
-load_dotenv()
-
-def load_model():
-    llm = HuggingFacePipeline.from_model_id(
-        model_id="TinyLlama/TinyLlama-1.1B-Chat-v1.0",
-        task='text-generation',
-        pipeline_kwargs=dict(
-            temperature=0.5,
-            max_new_tokens=100,
-            do_sample=False
-        )
-    )
-    return ChatHuggingFace(llm=llm)
-
-model = load_model()
-chat_history = []
 while(True):
     user_input = input("You : ")
-    chat_history.append(user_input)
+    messages.append(HumanMessage(content=user_input))
     if user_input == 'exit':
         break
-    result = model.invoke(chat_history)
+    result = model.invoke(messages)
     response = result.content
 
     if "<|assistant|>" in response:
         response = response.split("<|assistant|>")[-1]
-        chat_history.append(response)
-        print(response.strip())
-    
+        messages.append(AIMessage(content=response))
+        print("Assistant :",response.strip())
+        
+print(messages)
+messages.clear()
